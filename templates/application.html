@@ -3,12 +3,34 @@
 <h1>Заявка на обучение</h1>
 <form method="post">
     {% csrf_token %}
-    {% for field in form %}
-        <label>{{ field.label }}</label>
-        {{ field }}
-        {% for e in field.errors %}<div class="error">{{ e }}</div>{% endfor %}
-    {% endfor %}
+
+    <div class="form-group">
+        <label>{{ form.transport.label }}</label>
+        {{ form.transport }}
+        {% for e in form.transport.errors %}<div class="error">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div class="form-group">
+        <label>Дата начала обучения</label>
+        <div class="date-row">
+            {{ form.day }}
+            {{ form.month }}
+            {{ form.year }}
+        </div>
+        {% if form.non_field_errors %}
+            {% for e in form.non_field_errors %}
+                <div class="error">{{ e }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label>{{ form.payment.label }}</label>
+        {{ form.payment }}
+        {% for e in form.payment.errors %}<div class="error">{{ e }}</div>{% endfor %}
+    </div>
+
     <button class="btn" type="submit">Отправить заявку</button>
 </form>
-<a href="{% url 'dashboard' %}" class="aux">← Назад в ЛК</a>
+<a href="{% url 'dashboard' %}" class="aux" style="display:block;margin-top:12px">Назад в ЛК</a>
 {% endblock %}
