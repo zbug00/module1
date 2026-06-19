@@ -1,3 +1,58 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, ListView
+from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from .forms import RegisterForm, ApplicationForm
+from .models import Application
 
-# Create your views here.
+
+class RegisterView(CreateView):
+    form_class = RegisterForm
+    template_name = 'register.html'
+    success_url = reverse_lazy('login')
+
+
+class UserLoginView(LoginView):
+    template_name = 'login.html'
+
+
+class UserLogoutView(LogoutView):
+    next_page = 'login'
+
+
+class DashboardView(LoginRequiredMixin, ListView):
+    model = Application
+    template_name = 'dashboard.html'
+    context_object_name = 'applications'
+
+    def get_queryset(self):
+        return Application.objects.filter(user=self.request.user)
+
+class ApplicationCreateView(LoginRequiredMixin, CreateView):
+    model = Application
+    form_class = ApplicationForm
+    template_name = 'application.html'
+    success_url = reverse_lazy('dashboard')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+@login_required
+def admin_panel(request):
+    if request.user.username != 'Admin26':
+        return redirect('dashboard')
+
+    applications = Application.objects.all()
+
+    if request.method == 'POST':
+        app_id = request.POST.get('app_id')
+        new_status = request.POST.get('status')
+        app = get_object_or_404(Application, id=app_id)
+        app.status = new_status
+        app.save()
+        return redirect('admin_panel')
+
+    return render(request, 'admin_panel.html', {'applications': applications})
